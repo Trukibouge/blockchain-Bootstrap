@@ -11,14 +11,14 @@ first_block = Block(0, "")
 
 tx = Transaction("mohamed", "justine", 50, time.time())
 
-first_block.add_transaction(tx)
+first_block.addTransaction(tx)
 first_block.mine(difficulty)
 
 print("First block is: ")
 
 print(first_block)
 
-last_hash = first_block.hashval
+last_hash = first_block.hash_val
 
 second_block = Block(1, last_hash)
 
