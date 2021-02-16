@@ -8,9 +8,6 @@ from key import verify_signature
 class Block:
     def __init__(self, index: int, prev_hash: str, transactions=[], nonce=0, hash_val=None, miner_name=None, timestamp=0):
         self.transactions = list(transactions)
-        # for elem in transactions:
-        #     self.transactions.append(Transaction(elem["sender"],elem["receiver"],elem["amount"],elem["timestamp"],
-        #                              elem["tx_number"]))
         self.index = index
         self.hash_val = hash_val
         self.prev_hash = prev_hash
