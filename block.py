@@ -50,3 +50,17 @@ class Block:
         self.nonce = nonce
         self.miner_name = "name"
         return nonce
+
+    def to_dict(self) -> dict:
+        tx_dict = dict()
+        for transaction in self.transactions:
+            tx_dict[transaction.tx_id] = transaction.to_dict()
+        return {
+            "Index": self.index,
+            "Hash": self.hash_val,
+            "Previous Hash": self.prev_hash,
+            "Miner": self.miner_name,
+            "Nonce": self.nonce,
+            "Timestamp": self.timestamp,
+            "Transactions": tx_dict
+        }

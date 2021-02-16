@@ -27,3 +27,5 @@ second_block.mine(difficulty)
 print("Second block is: ")
 
 print(second_block)
+
+

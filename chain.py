@@ -1,4 +1,5 @@
 import time
+import json
 import copy
 from block import Block
 from transaction import Transaction
@@ -61,5 +62,18 @@ class Blockchain:
                 return False
         return True
 
+    def to_dict(self) -> dict:
+        block_dict = dict()
+        for block in self.blocks:
+            block_dict[block.index] = block.to_dict()
+        return {
+            "Difficulty": self.difficulty,
+            "Reward": self.block_reward,
+            "Transaction Pool": self.transaction_pool,
+            "Blocks": block_dict,
+        }
+
     def export_json(self) -> str:
-        pass
+        j = json.dumps(self.to_dict())
+        print(j)
+        return j

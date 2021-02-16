@@ -26,3 +26,5 @@ second_block = blockchain.blocks[-1]
 
 print("Second block: ")
 print(second_block)
+
+blockchain.export_json()
