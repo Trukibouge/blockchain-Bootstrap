@@ -40,7 +40,7 @@ socket = context.socket(zmq.PUB)
 socket.bind("tcp://*:%s" % port_bind)
 
 topic = ""
-ip = "localhost" + ":" + port_bind
+ip = "86.234.168.230" + ":" + port_bind
 socket_sub = context.socket(zmq.SUB)
 for elem in list(peers):
     if elem != ip:
@@ -267,6 +267,10 @@ class MyWidget(QtWidgets.QWidget):
     def mine_call(self):
         # need to call the mining function
         global blockchain
+        if not blockchain:
+            blockchain = Blockchain(difficulty)
+        else:
+            blockchain.mine_block()
 
     @Slot(str)
     def get_block_str(self, block_str):
