@@ -1,3 +1,4 @@
+import json
 import time
 from transaction import Transaction
 from block import Block
@@ -27,5 +28,7 @@ second_block.mine(difficulty)
 print("Second block is: ")
 
 print(second_block)
+
+print(json.dumps(second_block.to_dict()))
 
 
