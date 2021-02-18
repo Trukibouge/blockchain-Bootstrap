@@ -23,8 +23,7 @@ class Blockchain:
 
     def create_genesis_block(self) -> Block:
         newBlock = Block(0, "")
-        new_transaction = Transaction("network", "me", amount=self.block_reward, timestamp=time.time())
-        newBlock.addTransaction(new_transaction)
+        newBlock.add_transaction(receiver="network", sender="me", amount=self.block_reward, timestamp=time.time())
         newBlock.mine(self.difficulty)
         self.blocks.append(newBlock)
         return newBlock
@@ -44,11 +43,10 @@ class Blockchain:
 
     def mine_block(self) -> Block:
         newBlock = Block(len(self.blocks), self.blocks[-1].hash_val)
+        newBlock.add_transaction(receiver="me", sender="network", amount=self.block_reward, timestamp=time.time())
         for transaction in self.transaction_pool:
-            newBlock.addTransaction(transaction)
+            newBlock.add_transaction(receiver=transaction.receiver, sender=transaction.sender, amount=transaction.amount, timestamp=transaction.timestamp)
         self.reset_transaction_pool()
-        reward_transaction = Transaction("network", "me", amount=self.block_reward, timestamp=time.time())
-        newBlock.addTransaction(reward_transaction)
         newBlock.mine(self.difficulty)
         self.blocks.append(newBlock)
         return newBlock

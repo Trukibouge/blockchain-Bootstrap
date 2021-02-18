@@ -1,8 +1,10 @@
+import time
+
 from key import verify_signature
 
 
 class Transaction:
-    def __init__(self, sender: str, receiver: str, amount: int, timestamp=0, tx_id=None):
+    def __init__(self, sender: str, receiver: str, amount: int, timestamp=time.time(), tx_id=None):
         self.sender = sender
         self.receiver = receiver
         self.amount = amount

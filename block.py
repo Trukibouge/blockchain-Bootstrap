@@ -24,9 +24,9 @@ class Block:
         out = "Index: " + str(self.index) + "\nTime: " + str(self.timestamp) + "\nMiner: " + str(self.miner_name) + "\nTransactions: " + str(self.transactions) + "\nPrevious hash: " + self.prev_hash + "\nHash: " + self.hash_val
         return out
 
-    def addTransaction(self, tx: Transaction) -> None:
-        transaction = tx
-        tx.tx_id = len(self.transactions)
+    def add_transaction(self, receiver: str, sender: str, amount: int, timestamp=time.time()) -> None:
+        transaction = Transaction(sender=sender,receiver=receiver, amount=amount, timestamp=timestamp)
+        transaction.tx_id = len(self.transactions)
         self.transactions.append(transaction)
 
     def hashBlock(self, nonce) -> str:

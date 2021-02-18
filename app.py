@@ -68,7 +68,6 @@ def reading_network():
                 ConnectionWrite.write_block.emit(str(blockchain.blocks[-1]))
         if topico == 'transaction':
             if blockchain:
-
                 blockchain.add_transaction(receiver=data["receiver"],sender=data["sender"], amount=data["amount"])
 
 
@@ -143,8 +142,7 @@ class Tx_Dialog(QtWidgets.QDialog):
             return False
 
     def working_click(self):
-        # # add send tx to other peers function here
-        # global blockchain
+        global blockchain
         blockchain.add_transaction(sender=address, receiver=str(self.tx_address.text()), amount=int(self.tx_amount.text()))
         data = blockchain.transaction_pool[-1].to_dict()
         dataJson = json.dumps(data).encode()
