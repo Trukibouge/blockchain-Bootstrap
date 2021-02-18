@@ -55,19 +55,6 @@ class Connection(QObject):
 ConnectionWrite = Connection()
 
 
-# def reading_network():
-#     global blockchain
-#     global ConnectionWrite
-#     while True:
-#         [topic_val, msg_val] = socket_sub.recv_multipart()
-#         topic = topic_val.decode()
-#         chain_data = json.loads(msg_val.decode())
-#         if topic == "chain":
-#             if (blockchain and len(blockchain.blocks_list) < chain_data["length"]) or blockchain is None:
-#                 blockchain = Blockchain(difficulty, chain_data["chain"])
-#                 ConnectionWrite.write_block.emit(str(blockchain.blocks_list[-1]))
-
-
 def reading_network():
     global blockchain
     global ConnectionWrite
@@ -81,7 +68,8 @@ def reading_network():
                 ConnectionWrite.write_block.emit(str(blockchain.blocks[-1]))
         if topico == 'transaction':
             if blockchain:
-                blockchain.add_transaction(receiver=data["transaction"].receiver,sender=data["transaction"].sender, amount=data["transaction"].amount)
+
+                blockchain.add_transaction(receiver=data["receiver"],sender=data["sender"], amount=data["amount"])
 
 
 class Chain_Dialog(QtWidgets.QDialog):
@@ -157,9 +145,10 @@ class Tx_Dialog(QtWidgets.QDialog):
     def working_click(self):
         # # add send tx to other peers function here
         # global blockchain
-        # blockchain.add_transaction(sender=address, receiver=self.tx_address, amount=self.tx_amount)
-        # socket.send(transaction.to_dict())
-        # print('Message sent')
+        blockchain.add_transaction(sender=address, receiver=str(self.tx_address.text()), amount=int(self.tx_amount.text()))
+        data = blockchain.transaction_pool[-1].to_dict()
+        dataJson = json.dumps(data).encode()
+        socket.send_multipart([b'transaction', dataJson])
         self.accept()
 
 
@@ -305,20 +294,6 @@ class MyWidget(QtWidgets.QWidget):
         data = blockchain.to_dict()
         dataJson = json.dumps(data).encode()
         socket.send_multipart([b'chain', dataJson])
-
-    # def mine_call(self):
-    #     # need to call the mining function
-    #     global blockchain
-    #     if blockchain is None:
-    #         blockchain = Blockchain(difficulty)
-    #         blockchain.create_genesis_block()
-    #     else:
-    #         blockchain.mine_block()
-    #     self.define_block(blockchain.blocks_list[-1])
-    #     chain = blockchain.to_dict()
-    #     # need to send the new chain
-    #     chain_data = json.dumps({"length": len(chain), "chain": chain}).encode()
-    #     socket.send_multipart([b'chain', chain_data])
 
     @Slot(str)
     def get_block_str(self, block_str):
