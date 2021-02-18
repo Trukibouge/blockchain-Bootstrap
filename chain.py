@@ -11,9 +11,15 @@ class Blockchain:
         self.transaction_pool = []
         self.difficulty = difficulty
         self.block_reward = block_reward
-        self.create_genesis_block()
         for block in blocks:
-            self.blocks.append(block)
+            new = Block(index=block["index"],prev_hash=block["prev_hash"],nonce=block["nonce"],
+                        timestamp=block["timestamp"],transactions=block["transactions"],
+                        hash_val=block["hash_val"],miner_name=block["miner_name"])
+            self.blocks.append(new)
+
+    def __repr__(self):
+        out = "Difficulty: " + str(self.difficulty) + "\nBlocks: " + str(self.blocks) + "\nBlock Reward: " + str(self.block_reward)
+        return out
 
     def create_genesis_block(self) -> Block:
         newBlock = Block(0, "")
@@ -37,7 +43,7 @@ class Blockchain:
         return block
 
     def mine_block(self) -> Block:
-        newBlock = Block(len(self.blocks)-1, self.blocks[-1].hash_val)
+        newBlock = Block(len(self.blocks), self.blocks[-1].hash_val)
         for transaction in self.transaction_pool:
             newBlock.addTransaction(transaction)
         self.reset_transaction_pool()
@@ -48,7 +54,7 @@ class Blockchain:
         return newBlock
 
     def add_transaction(self, receiver, sender, amount) -> Transaction:
-        transaction = Transaction(sender=sender, receiver=receiver, amount=amount, timestamp=time.time(), tx_number=len(self.transaction_pool))
+        transaction = Transaction(sender=sender, receiver=receiver, amount=amount, timestamp=time.time(), tx_id=len(self.transaction_pool))
         self.transaction_pool.append(transaction)
         return transaction
 
@@ -63,15 +69,17 @@ class Blockchain:
         return True
 
     def to_dict(self) -> dict:
-        block_dict = dict()
-        for block in self.blocks:
-            block_dict[block.index] = block.to_dict()
-        return {
-            "Difficulty": self.difficulty,
-            "Reward": self.block_reward,
-            "Transaction Pool": self.transaction_pool,
-            "Blocks": block_dict,
+        dic = {
+            "difficulty": self.difficulty,
+            "block_reward": self.block_reward,
+            "transaction_pool": [],
+            "blocks": [],
         }
+        for transaction in self.transaction_pool:
+            dic["transaction_pool"].append(transaction.to_dict())
+        for block in self.blocks:
+            dic["blocks"].append(block.to_dict())
+        return dic
 
     def export_json(self) -> str:
         j = json.dumps(self.to_dict())

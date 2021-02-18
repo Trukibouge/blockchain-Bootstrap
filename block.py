@@ -7,7 +7,12 @@ from key import verify_signature
 
 class Block:
     def __init__(self, index: int, prev_hash: str, transactions=[], nonce=0, hash_val=None, miner_name=None, timestamp=0):
-        self.transactions = list(transactions)
+        self.transactions = []
+        for transaction in transactions:
+            new = Transaction(tx_id=transaction['tx_id'],receiver=transaction['receiver'],
+                              sender=transaction['sender'],amount=transaction['amount'],
+                              timestamp=transaction['timestamp'])
+            self.transactions.append(new)
         self.index = index
         self.hash_val = hash_val
         self.prev_hash = prev_hash
@@ -52,15 +57,15 @@ class Block:
         return nonce
 
     def to_dict(self) -> dict:
-        tx_dict = dict()
-        for transaction in self.transactions:
-            tx_dict[transaction.tx_id] = transaction.to_dict()
-        return {
-            "Index": self.index,
-            "Hash": self.hash_val,
-            "Previous Hash": self.prev_hash,
-            "Miner": self.miner_name,
-            "Nonce": self.nonce,
-            "Timestamp": self.timestamp,
-            "Transactions": tx_dict
+        dic = {
+            "index": self.index,
+            "hash_val": self.hash_val,
+            "prev_hash": self.prev_hash,
+            "miner_name": self.miner_name,
+            "nonce": self.nonce,
+            "timestamp": self.timestamp,
+            "transactions": []
         }
+        for transaction in self.transactions:
+            dic['transactions'].append(transaction.to_dict())
+        return dic

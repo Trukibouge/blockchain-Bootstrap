@@ -2,23 +2,22 @@ from key import verify_signature
 
 
 class Transaction:
-    def __init__(self, sender: str, receiver: str, amount: float, timestamp=0, tx_number=None):
+    def __init__(self, sender: str, receiver: str, amount: int, timestamp=0, tx_id=None):
         self.sender = sender
         self.receiver = receiver
         self.amount = amount
         self.timestamp = timestamp
-        self.tx_id = tx_number
+        self.tx_id = tx_id
 
     def __repr__(self) -> str:
-        string = "Number: " + str(self.tx_id) + "\nSender: " + self.sender + "\nReceiver: " + self.receiver + "\nAmount: " + str(self.amount) + "\nTimestamp: " + str(self.timestamp)
+        string = "Number: " + str(self.tx_id) + " || Sender: " + self.sender + " || Receiver: " + self.receiver + " || Amount: " + str(self.amount) + " || Timestamp: " + str(self.timestamp)
         return string
 
     def to_dict(self) -> dict:
-        tx_dict = {
-            "tx_number": self.tx_id,
+        return {
+            "tx_id": self.tx_id,
             "sender": self.sender,
             "receiver": self.receiver,
             "amount": self.amount,
             "timestamp": self.timestamp
         }
-        return tx_dict

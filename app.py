@@ -25,7 +25,7 @@ wallet.to_file(file_name)
 #  blockchain data
 
 difficulty = 3
-blockchain = None
+blockchain: Blockchain = None
 peers = set()
 
 # list_ports = ["5556", "5557", "5558"]
@@ -40,7 +40,7 @@ socket = context.socket(zmq.PUB)
 socket.bind("tcp://*:%s" % port_bind)
 
 topic = ""
-ip = "86.234.168.230" + ":" + port_bind
+ip = "localhost" + ":" + port_bind
 socket_sub = context.socket(zmq.SUB)
 for elem in list(peers):
     if elem != ip:
@@ -55,8 +55,33 @@ class Connection(QObject):
 ConnectionWrite = Connection()
 
 
+# def reading_network():
+#     global blockchain
+#     global ConnectionWrite
+#     while True:
+#         [topic_val, msg_val] = socket_sub.recv_multipart()
+#         topic = topic_val.decode()
+#         chain_data = json.loads(msg_val.decode())
+#         if topic == "chain":
+#             if (blockchain and len(blockchain.blocks_list) < chain_data["length"]) or blockchain is None:
+#                 blockchain = Blockchain(difficulty, chain_data["chain"])
+#                 ConnectionWrite.write_block.emit(str(blockchain.blocks_list[-1]))
+
+
 def reading_network():
-    pass
+    global blockchain
+    global ConnectionWrite
+    while True:
+        [topic_val, msg_val] = socket_sub.recv_multipart()
+        topico = topic_val.decode()
+        data = json.loads(msg_val.decode())
+        if topico == 'chain':
+            if blockchain and len(blockchain.blocks) < len(data['blocks']) or not blockchain:
+                blockchain = Blockchain(difficulty, data['blocks'])
+                ConnectionWrite.write_block.emit(str(blockchain.blocks[-1]))
+        if topico == 'transaction':
+            if blockchain:
+                blockchain.add_transaction(receiver=data["transaction"].receiver,sender=data["transaction"].sender, amount=data["transaction"].amount)
 
 
 class Chain_Dialog(QtWidgets.QDialog):
@@ -130,7 +155,11 @@ class Tx_Dialog(QtWidgets.QDialog):
             return False
 
     def working_click(self):
-        # add send tx to other peers function here
+        # # add send tx to other peers function here
+        # global blockchain
+        # blockchain.add_transaction(sender=address, receiver=self.tx_address, amount=self.tx_amount)
+        # socket.send(transaction.to_dict())
+        # print('Message sent')
         self.accept()
 
 
@@ -269,8 +298,27 @@ class MyWidget(QtWidgets.QWidget):
         global blockchain
         if not blockchain:
             blockchain = Blockchain(difficulty)
+            blockchain.create_genesis_block()
         else:
             blockchain.mine_block()
+        self.define_block(blockchain.blocks[-1])
+        data = blockchain.to_dict()
+        dataJson = json.dumps(data).encode()
+        socket.send_multipart([b'chain', dataJson])
+
+    # def mine_call(self):
+    #     # need to call the mining function
+    #     global blockchain
+    #     if blockchain is None:
+    #         blockchain = Blockchain(difficulty)
+    #         blockchain.create_genesis_block()
+    #     else:
+    #         blockchain.mine_block()
+    #     self.define_block(blockchain.blocks_list[-1])
+    #     chain = blockchain.to_dict()
+    #     # need to send the new chain
+    #     chain_data = json.dumps({"length": len(chain), "chain": chain}).encode()
+    #     socket.send_multipart([b'chain', chain_data])
 
     @Slot(str)
     def get_block_str(self, block_str):
@@ -303,11 +351,11 @@ class MyWidget(QtWidgets.QWidget):
 
     def define_tx(self, elem):
         text = (
-            "Tx: { address : "
-            + elem["address"]
-            + ", amount : "
-            + str(elem["amount"])
-            + " }"
+                "Tx: { address : "
+                + elem["address"]
+                + ", amount : "
+                + str(elem["amount"])
+                + " }"
         )
         text_tx = QtWidgets.QLabel(text)
         text_tx.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
