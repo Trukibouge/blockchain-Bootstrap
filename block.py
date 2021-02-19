@@ -11,7 +11,7 @@ class Block:
         for transaction in transactions:
             new = Transaction(tx_id=transaction['tx_id'],receiver=transaction['receiver'],
                               sender=transaction['sender'],amount=transaction['amount'],
-                              timestamp=transaction['timestamp'])
+                              timestamp=transaction['timestamp'], signature=transaction['signature'])
             self.transactions.append(new)
         self.index = index
         self.hash_val = hash_val
@@ -24,18 +24,13 @@ class Block:
     def __repr__(self):
         out = "Index: " + str(self.index) + "\nTime: " + str(self.timestamp) + "\nMiner: " + str(self.miner_name) + "\nTransactions: " + str(self.transactions) + "\nPrevious hash: " + self.prev_hash + "\nHash: " + self.hash_val
         if self.signature:
-            out += "\nSignature: " + str(self.signature.hex())
+            out += "\nSignature: " + str(self.signature)
         return out
 
     def add_transaction(self, receiver: str, sender: str, amount: int, timestamp=time.time(), signature=None) -> None:
         transaction = Transaction(receiver=receiver, sender=sender, amount=amount, timestamp=timestamp, signature=signature)
         transaction.tx_id = len(self.transactions)
         self.transactions.append(transaction)
-
-    # def add_transaction(self, transaction: Transaction):
-    #     newTrans = Transaction(receiver=transaction.receiver, sender=transaction.sender, amount=transaction.amount, timestamp=transaction.amount, signature=transaction.signature)
-    #     newTrans.tx_id = len(self.transactions)
-    #     self.transactions.append(newTrans)
 
     def hashBlock(self, nonce) -> str:
         sha = hashlib.sha256()
@@ -70,14 +65,14 @@ class Block:
 
     def sign(self, wallet: BitcoinAccount):
         message = str(self.hash_val)
-        self.signature = wallet.sign(message)
+        self.signature = wallet.sign(message).hex()
 
     def verify_signature(self):
         result = True
         for transaction in self.transactions:
             if not transaction.verify_signature():
                 result = False
-        if not verify_signature(self.signature.hex(), str(self.hash_val), self.miner_name):
+        if not verify_signature(self.signature, str(self.hash_val), self.miner_name):
             result = False
         return result
 
@@ -89,7 +84,8 @@ class Block:
             "miner_name": self.miner_name,
             "nonce": self.nonce,
             "timestamp": self.timestamp,
-            "transactions": []
+            "transactions": [],
+            "signature": self.signature
         }
         for transaction in self.transactions:
             dic['transactions'].append(transaction.to_dict())

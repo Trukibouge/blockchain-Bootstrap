@@ -64,11 +64,15 @@ def reading_network():
         data = json.loads(msg_val.decode())
         if topico == 'chain':
             if blockchain and len(blockchain.blocks) < len(data['blocks']) or not blockchain:
-                blockchain = Blockchain(difficulty, data['blocks'])
-                ConnectionWrite.write_block.emit(str(blockchain.blocks[-1]))
+                new = Blockchain(difficulty, data['blocks'])
+                if new.verify():
+                    blockchain = new
+                    ConnectionWrite.write_block.emit(str(blockchain.blocks[-1]))
+                else:
+                    print("Received weird block")
         if topico == 'transaction':
             if blockchain:
-                blockchain.add_transaction(receiver=data["receiver"],sender=data["sender"], amount=data["amount"])
+                blockchain.add_transaction(receiver=data["receiver"],sender=data["sender"], amount=data["amount"], signature=data["signature"])
 
 
 class Chain_Dialog(QtWidgets.QDialog):
@@ -145,7 +149,7 @@ class Tx_Dialog(QtWidgets.QDialog):
         global blockchain
         data = address + self.tx_address.text() + str(self.tx_amount.text())
         signature = wallet.sign(data)
-        blockchain.add_transaction(sender=address, receiver=str(self.tx_address.text()), amount=int(self.tx_amount.text()), signature=signature)
+        blockchain.add_transaction(sender=address, receiver=str(self.tx_address.text()), amount=int(self.tx_amount.text()), signature=signature.hex())
         data = blockchain.transaction_pool[-1].to_dict()
         dataJson = json.dumps(data).encode()
         socket.send_multipart([b'transaction', dataJson])

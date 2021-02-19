@@ -11,7 +11,7 @@ difficulty = 4
 first_block = Block(0, "")
 
 first_block.add_transaction("mohamed", "justine", 50, time.time())
-first_block.mine(difficulty)
+first_block.mine(difficulty, wallet)
 
 print("First block is: ")
 
@@ -21,7 +21,7 @@ last_hash = first_block.hash_val
 
 second_block = Block(1, last_hash)
 
-second_block.mine(difficulty)
+second_block.mine(difficulty, wallet)
 
 print("Second block is: ")
 

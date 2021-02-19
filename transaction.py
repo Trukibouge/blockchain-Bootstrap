@@ -14,20 +14,19 @@ class Transaction:
         self.signature = signature
 
     def __repr__(self) -> str:
-        string = "Number: " + str(self.tx_id) + " || Sender: " + self.sender + " || Receiver: " + self.receiver + " || Amount: " + str(self.amount) + " || Timestamp: " + str(self.timestamp)
+        string = "\nNumber: " + str(self.tx_id) + "\nSender: " + self.sender + "\nReceiver: " + self.receiver + "\nAmount: " + str(self.amount) + "\nTimestamp: " + str(self.timestamp)
         if self.signature:
-            string += " || Signature: " + str(self.signature.hex()) + "\n"
+            string += "\nSignature: " + str(self.signature) + "\n"
         return string
 
     def sign(self, wallet: BitcoinAccount):
         message = str(self.sender) + str(self.receiver) + str(self.amount)
         if wallet:
-            signature = wallet.sign(message)
-            self.signature = signature
+            self.signature = wallet.sign(message).hex()
 
     def verify_signature(self):
         message = str(self.sender) + str(self.receiver) + str(self.amount)
-        return verify_signature(self.signature.hex(), message, self.sender)
+        return verify_signature(self.signature, message, self.sender)
 
 
     def to_dict(self) -> dict:
@@ -36,5 +35,6 @@ class Transaction:
             "sender": self.sender,
             "receiver": self.receiver,
             "amount": self.amount,
-            "timestamp": self.timestamp
+            "timestamp": self.timestamp,
+            "signature": self.signature
         }

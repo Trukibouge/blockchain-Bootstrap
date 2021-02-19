@@ -14,19 +14,23 @@ class Blockchain:
         for block in blocks:
             new = Block(index=block["index"],prev_hash=block["prev_hash"],nonce=block["nonce"],
                         timestamp=block["timestamp"],transactions=block["transactions"],
-                        hash_val=block["hash_val"],miner_name=block["miner_name"])
+                        hash_val=block["hash_val"],miner_name=block["miner_name"], signature=block["signature"])
             self.blocks.append(new)
 
     def __repr__(self):
         out = "Difficulty: " + str(self.difficulty) + "\nBlocks: " + str(self.blocks) + "\nBlock Reward: " + str(self.block_reward)
         return out
 
+    def assign_block_reward(self, block, wallet=None):
+        if wallet:
+            block.add_transaction(receiver=wallet.to_address(), sender=wallet.to_address(), amount=self.block_reward, timestamp=time.time())
+            block.transactions[-1].sign(wallet)
+        else:
+            block.add_transaction(receiver="me", sender="network", amount=self.block_reward, timestamp=time.time())
+
     def create_genesis_block(self, wallet=None) -> Block:
         newBlock = Block(0, "")
-        if wallet:
-            newBlock.add_transaction(receiver=wallet.to_address(), sender="network", amount=self.block_reward, timestamp=time.time())
-        else:
-            newBlock.add_transaction(receiver="me", sender="network", amount=self.block_reward, timestamp=time.time())
+        self.assign_block_reward(newBlock, wallet)
         newBlock.mine(self.difficulty, wallet)
 
 
@@ -48,7 +52,7 @@ class Blockchain:
 
     def mine_block(self, wallet=None) -> Block:
         newBlock = Block(len(self.blocks), self.blocks[-1].hash_val)
-        newBlock.add_transaction(receiver="me", sender="network", amount=self.block_reward, timestamp=time.time())
+        self.assign_block_reward(newBlock, wallet)
         for transaction in self.transaction_pool:
             newBlock.add_transaction(receiver=transaction.receiver, sender=transaction.sender, amount=transaction.amount, timestamp=transaction.timestamp, signature=transaction.signature)
         self.reset_transaction_pool()
