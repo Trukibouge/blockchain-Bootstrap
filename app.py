@@ -117,7 +117,7 @@ class Tx_Dialog(QtWidgets.QDialog):
         self.tx_amount.setRange(0, 999999999)
         # self.tx_amount.setValue(0)
         self.setWindowModality(QtCore.Qt.ApplicationModal)
-        tx_layout.addRow("Adress of receiver: ", self.tx_address)
+        tx_layout.addRow("Address of receiver: ", self.tx_address)
         tx_layout.addRow("Amount to send: ", self.tx_amount)
         tx_layout.addWidget(self.buttonBox)
         self.setLayout(tx_layout)
@@ -143,7 +143,9 @@ class Tx_Dialog(QtWidgets.QDialog):
 
     def working_click(self):
         global blockchain
-        blockchain.add_transaction(sender=address, receiver=str(self.tx_address.text()), amount=int(self.tx_amount.text()))
+        data = address + self.tx_address.text() + str(self.tx_amount.text())
+        signature = wallet.sign(data)
+        blockchain.add_transaction(sender=address, receiver=str(self.tx_address.text()), amount=int(self.tx_amount.text()), signature=signature)
         data = blockchain.transaction_pool[-1].to_dict()
         dataJson = json.dumps(data).encode()
         socket.send_multipart([b'transaction', dataJson])
@@ -169,7 +171,7 @@ class Peer_Dialog(QtWidgets.QDialog):
         self.peer_address.textChanged.connect(self.allowButton)
 
         self.setWindowModality(QtCore.Qt.ApplicationModal)
-        tx_layout.addRow("Adress of receiver: ", self.peer_address)
+        tx_layout.addRow("Address of receiver: ", self.peer_address)
 
         tx_layout.addWidget(self.buttonBox)
         self.setLayout(tx_layout)
@@ -285,9 +287,9 @@ class MyWidget(QtWidgets.QWidget):
         global blockchain
         if not blockchain:
             blockchain = Blockchain(difficulty)
-            blockchain.create_genesis_block()
+            blockchain.create_genesis_block(wallet)
         else:
-            blockchain.mine_block()
+            blockchain.mine_block(wallet)
         self.define_block(blockchain.blocks[-1])
         data = blockchain.to_dict()
         dataJson = json.dumps(data).encode()

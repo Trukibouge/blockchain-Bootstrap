@@ -10,9 +10,7 @@ difficulty = 4
 
 first_block = Block(0, "")
 
-tx = Transaction("mohamed", "justine", 50, time.time())
-
-first_block.addTransaction(tx)
+first_block.add_transaction("mohamed", "justine", 50, time.time())
 first_block.mine(difficulty)
 
 print("First block is: ")

@@ -21,10 +21,15 @@ class Blockchain:
         out = "Difficulty: " + str(self.difficulty) + "\nBlocks: " + str(self.blocks) + "\nBlock Reward: " + str(self.block_reward)
         return out
 
-    def create_genesis_block(self) -> Block:
+    def create_genesis_block(self, wallet=None) -> Block:
         newBlock = Block(0, "")
-        newBlock.add_transaction(receiver="network", sender="me", amount=self.block_reward, timestamp=time.time())
-        newBlock.mine(self.difficulty)
+        if wallet:
+            newBlock.add_transaction(receiver=wallet.to_address(), sender="network", amount=self.block_reward, timestamp=time.time())
+        else:
+            newBlock.add_transaction(receiver="me", sender="network", amount=self.block_reward, timestamp=time.time())
+        newBlock.mine(self.difficulty, wallet)
+
+
         self.blocks.append(newBlock)
         return newBlock
 
@@ -41,27 +46,31 @@ class Blockchain:
         self.blocks.append(block)
         return block
 
-    def mine_block(self) -> Block:
+    def mine_block(self, wallet=None) -> Block:
         newBlock = Block(len(self.blocks), self.blocks[-1].hash_val)
         newBlock.add_transaction(receiver="me", sender="network", amount=self.block_reward, timestamp=time.time())
         for transaction in self.transaction_pool:
-            newBlock.add_transaction(receiver=transaction.receiver, sender=transaction.sender, amount=transaction.amount, timestamp=transaction.timestamp)
+            newBlock.add_transaction(receiver=transaction.receiver, sender=transaction.sender, amount=transaction.amount, timestamp=transaction.timestamp, signature=transaction.signature)
         self.reset_transaction_pool()
-        newBlock.mine(self.difficulty)
+        newBlock.mine(self.difficulty, wallet)
         self.blocks.append(newBlock)
         return newBlock
 
-    def add_transaction(self, receiver, sender, amount) -> Transaction:
-        transaction = Transaction(sender=sender, receiver=receiver, amount=amount, timestamp=time.time(), tx_id=len(self.transaction_pool))
+    def add_transaction(self, receiver, sender, amount, signature=None) -> Transaction:
+        transaction = Transaction(sender=sender, receiver=receiver, amount=amount, timestamp=time.time(), tx_id=len(self.transaction_pool), signature=signature)
         self.transaction_pool.append(transaction)
         return transaction
+
+    # def add_transaction(self, transaction: Transaction):
+    #     newTrans = Transaction(receiver=transaction.receiver, sender=transaction.sender, amount=transaction.amount, timestamp=transaction.amount, signature=transaction.signature)
+    #     self.transaction_pool.append(newTrans)
 
     def reset_transaction_pool(self) -> None:
         self.transaction_pool.clear()
 
     def verify(self) -> bool:
         for block in self.blocks:
-            if not block.checkHash():
+            if not block.checkHash(block.nonce) or not block.verify_signature():
                 block.__repr__()
                 return False
         return True
