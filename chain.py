@@ -7,6 +7,7 @@ from transaction import Transaction
 
 class Blockchain:
     def __init__(self, difficulty: int, blocks=[], block_reward=50) -> None:
+        self.tokens = {}
         self.blocks = []
         self.transaction_pool = []
         self.difficulty = difficulty
@@ -23,7 +24,7 @@ class Blockchain:
 
     def assign_block_reward(self, block, wallet=None):
         if wallet:
-            block.add_transaction(receiver=wallet.to_address(), sender=wallet.to_address(), amount=self.block_reward, timestamp=time.time())
+            block.add_transaction(receiver='miner', sender=wallet.to_address(), amount=self.block_reward, timestamp=time.time())
             block.transactions[-1].sign(wallet)
         else:
             block.add_transaction(receiver="me", sender="network", amount=self.block_reward, timestamp=time.time())
@@ -58,6 +59,7 @@ class Blockchain:
         self.reset_transaction_pool()
         newBlock.mine(self.difficulty, wallet)
         self.blocks.append(newBlock)
+        self.update_token()
         return newBlock
 
     def add_transaction(self, receiver, sender, amount, signature=None) -> Transaction:
@@ -91,6 +93,33 @@ class Blockchain:
         for block in self.blocks:
             dic["blocks"].append(block.to_dict())
         return dic
+
+    def update_token(self) -> None:
+        for block in self.blocks:
+            for transaction in block.transactions:
+                if transaction.receiver == "miner":
+                    if self.tokens.get(transaction.sender):
+                        self.tokens[transaction.sender] += transaction.amount
+                    else:
+                        self.tokens[transaction.sender] = transaction.amount
+
+                else:
+                    if self.tokens.get(transaction.sender):
+                        self.tokens[transaction.sender] -= transaction.amount
+                    else:
+                        self.tokens[transaction.sender] = -transaction.amount
+                        
+                    if self.tokens.get(transaction.receiver):
+                        self.tokens[transaction.receiver] += transaction.amount
+                    else:
+                        self.tokens[transaction.receiver] = transaction.amount
+
+    def get_wealth(self, address: str):
+        if self.tokens[address]:
+            return self.tokens[address]
+        else:
+            print("Address not found")
+            return None
 
     def export_json(self) -> str:
         j = json.dumps(self.to_dict())

@@ -67,6 +67,7 @@ def reading_network():
                 new = Blockchain(difficulty, data['blocks'])
                 if new.verify():
                     blockchain = new
+                    print(blockchain.tokens)
                     ConnectionWrite.write_block.emit(str(blockchain.blocks[-1]))
                 else:
                     print("Received weird block")
@@ -150,6 +151,8 @@ class Tx_Dialog(QtWidgets.QDialog):
         data = address + self.tx_address.text() + str(self.tx_amount.text())
         signature = wallet.sign(data)
         blockchain.add_transaction(sender=address, receiver=str(self.tx_address.text()), amount=int(self.tx_amount.text()), signature=signature.hex())
+        blockchain.update_token()
+        print(blockchain.tokens)
         data = blockchain.transaction_pool[-1].to_dict()
         dataJson = json.dumps(data).encode()
         socket.send_multipart([b'transaction', dataJson])
@@ -294,6 +297,7 @@ class MyWidget(QtWidgets.QWidget):
             blockchain.create_genesis_block(wallet)
         else:
             blockchain.mine_block(wallet)
+        print(blockchain.tokens)
         self.define_block(blockchain.blocks[-1])
         data = blockchain.to_dict()
         dataJson = json.dumps(data).encode()
