@@ -17,6 +17,7 @@ class Blockchain:
                         timestamp=block["timestamp"],transactions=block["transactions"],
                         hash_val=block["hash_val"],miner_name=block["miner_name"], signature=block["signature"])
             self.blocks.append(new)
+        self.update_token()
 
     def __repr__(self):
         out = "Difficulty: " + str(self.difficulty) + "\nBlocks: " + str(self.blocks) + "\nBlock Reward: " + str(self.block_reward)
@@ -33,9 +34,8 @@ class Blockchain:
         newBlock = Block(0, "")
         self.assign_block_reward(newBlock, wallet)
         newBlock.mine(self.difficulty, wallet)
-
-
         self.blocks.append(newBlock)
+        self.update_token()
         return newBlock
 
     def addPeerBlock(self, block: Block) -> Block:
@@ -95,6 +95,7 @@ class Blockchain:
         return dic
 
     def update_token(self) -> None:
+        self.tokens = {}
         for block in self.blocks:
             for transaction in block.transactions:
                 if transaction.receiver == "miner":
@@ -108,7 +109,7 @@ class Blockchain:
                         self.tokens[transaction.sender] -= transaction.amount
                     else:
                         self.tokens[transaction.sender] = -transaction.amount
-                        
+
                     if self.tokens.get(transaction.receiver):
                         self.tokens[transaction.receiver] += transaction.amount
                     else:
